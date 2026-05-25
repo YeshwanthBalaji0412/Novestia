@@ -1,0 +1,23 @@
+target-version = "py312"
+src = ["src"]
+line-length = 100
+
+[lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+    "SIM", # flake8-simplify
+    "RUF", # ruff-specific
+]
+ignore = [
+    "B008", # function call in default argument — false positive for FastAPI Depends()
+]
+
+[lint.isort]
+known-first-party = ["novestia"]
+
+[format]
+quote-style = "double"

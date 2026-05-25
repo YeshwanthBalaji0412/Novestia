@@ -1,0 +1,46 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv --version)",
+      "Bash(pnpm --version)",
+      "Bash(pip3 --version)",
+      "Bash(npm --version)",
+      "Bash(npx --version)",
+      "Bash(curl -LsSf https://astral.sh/uv/install.sh)",
+      "Bash(sh)",
+      "Bash(pnpm create:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm dlx:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(docker compose:*)",
+      "Bash(docker --version)",
+      "Bash(/usr/local/bin/docker --version)",
+      "Bash(/Applications/Docker.app/Contents/Resources/bin/docker --version)",
+      "Bash(export PATH=\"/Applications/Docker.app/Contents/Resources/bin:$PATH\")",
+      "Read(//Applications/Docker.app/Contents/Resources/bin/**)",
+      "Bash(/Applications/Docker.app/Contents/Resources/bin/docker compose:*)",
+      "Bash(/Applications/Docker.app/Contents/Resources/bin/docker info:*)",
+      "Bash(open -a Docker)",
+      "Bash(/Applications/Docker.app/Contents/Resources/bin/docker exec:*)",
+      "Bash(pnpm dev:*)",
+      "Bash(curl -s http://localhost:8000/health)",
+      "Bash(curl -s http://localhost:3000 -o /dev/null -w \"Frontend: HTTP %{http_code}\\\\n\")",
+      "Read(//private/tmp/**)",
+      "Bash(kill 83399 83397)",
+      "Bash(curl -s http://localhost:8000/api/v1/users/me -H \"Authorization: Bearer fake\")",
+      "Bash(curl -s -X OPTIONS http://localhost:8000/api/v1/users/sync -H 'Origin: http://localhost:3000' -H 'Access-Control-Request-Method: POST' -H 'Access-Control-Request-Headers: authorization,content-type' -v)",
+      "Bash(curl -s -X OPTIONS http://localhost:8000/api/v1/users/sync -H 'Origin: http://localhost:3000' -H 'Access-Control-Request-Method: POST' -H 'Access-Control-Request-Headers: authorization,content-type' -D - -o /dev/null)",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(rm -rf .next)",
+      "Bash(timeout 20 tail -f /tmp/novestia-backend-live.log)",
+      "Bash(pkill -f \"uvicorn novestia\")",
+      "Bash(lsof -ti:8000)",
+      "Bash(lsof -ti:3000)",
+      "Bash(grep -E \"\\\\.env$|\\\\.env\\\\.local$\")"
+    ],
+    "additionalDirectories": [
+      "/Users/yeshwanthbalaji/Documents/Novestia",
+      "/Users/yeshwanthbalaji/Documents/Novestia/frontend/src/app/(auth)/sign-in"
+    ]
+  }
+}
