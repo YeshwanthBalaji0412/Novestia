@@ -2,7 +2,7 @@
 
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createApiClient } from "@/lib/api/client";
 import { useUserSync } from "@/hooks/use-user-sync";
 import type { ApiResponse, OnboardResponse } from "@/types";
@@ -16,8 +16,13 @@ export default function OnboardingPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Already onboarded — redirect to dashboard
+  useEffect(() => {
+    if (!isSyncing && user?.onboarded) {
+      router.replace("/dashboard");
+    }
+  }, [isSyncing, user?.onboarded, router]);
+
   if (!isSyncing && user?.onboarded) {
-    router.replace("/dashboard");
     return null;
   }
 

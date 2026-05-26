@@ -2,6 +2,7 @@
 
 from novestia.models.ai import AIExplanation
 from novestia.models.base import Base
+from novestia.models.idempotency import IdempotencyKey
 from novestia.models.portfolio import (
     Holding,
     JournalEntry,
@@ -20,6 +21,7 @@ __all__ = [
     "APICallLog",
     "Base",
     "Holding",
+    "IdempotencyKey",
     "JournalEntry",
     "Portfolio",
     "PortfolioSnapshot",
