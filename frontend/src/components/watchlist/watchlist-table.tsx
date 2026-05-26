@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { formatCurrency, formatPercent } from "@/lib/format";
 import { useRemoveFromWatchlist } from "@/hooks/use-watchlist";
@@ -38,10 +39,12 @@ export function WatchlistTable({ items }: Props) {
               return (
                 <tr key={item.ticker} className="border-b last:border-0">
                   <td className="p-3">
-                    <div className="font-medium">{item.ticker}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {item.company_name}
-                    </div>
+                    <Link href={`/stocks/${item.ticker}`} className="hover:underline">
+                      <div className="font-medium">{item.ticker}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {item.company_name}
+                      </div>
+                    </Link>
                   </td>
                   <td className="p-3 text-right tabular-nums">
                     {formatCurrency(item.current_price)}

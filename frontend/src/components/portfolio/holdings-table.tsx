@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { formatCurrency, formatPercent, formatQuantity } from "@/lib/format";
 import type { HoldingSummary } from "@/types";
@@ -39,10 +40,12 @@ export function HoldingsTable({ holdings }: Props) {
               return (
                 <tr key={h.ticker} className="border-b last:border-0">
                   <td className="p-3">
-                    <div className="font-medium">{h.ticker}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {h.company_name}
-                    </div>
+                    <Link href={`/stocks/${h.ticker}`} className="hover:underline">
+                      <div className="font-medium">{h.ticker}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {h.company_name}
+                      </div>
+                    </Link>
                   </td>
                   <td className="p-3 tabular-nums">
                     {formatQuantity(h.quantity)}

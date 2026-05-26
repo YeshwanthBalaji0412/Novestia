@@ -5,11 +5,18 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from decimal import Decimal
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from novestia.models.portfolio import Portfolio
+from novestia.models.portfolio import (
+    Holding,
+    JournalEntry,
+    Portfolio,
+    PortfolioSnapshot,
+    Transaction,
+)
+from novestia.models.risk import RiskReport
 from novestia.models.user import User
 from novestia.models.watchlist import Watchlist
 
@@ -90,6 +97,41 @@ async def onboard_user(
 
     await db.flush()
     return user, portfolio
+
+
+async def reset_portfolio(
+    db: AsyncSession,
+    user: User,
+) -> Portfolio:
+    """Wipe all trades, holdings, journal, risk and reset cash to $10k."""
+    result = await db.execute(
+        select(Portfolio).where(Portfolio.user_id == user.id)
+    )
+    portfolio = result.scalar_one_or_none()
+    if not portfolio:
+        msg = "No portfolio to reset"
+        raise ValueError(msg)
+
+    # Delete in FK-safe order
+    await db.execute(
+        delete(JournalEntry).where(JournalEntry.portfolio_id == portfolio.id)
+    )
+    await db.execute(
+        delete(RiskReport).where(RiskReport.portfolio_id == portfolio.id)
+    )
+    await db.execute(
+        delete(PortfolioSnapshot).where(PortfolioSnapshot.portfolio_id == portfolio.id)
+    )
+    await db.execute(
+        delete(Transaction).where(Transaction.portfolio_id == portfolio.id)
+    )
+    await db.execute(
+        delete(Holding).where(Holding.portfolio_id == portfolio.id)
+    )
+
+    portfolio.cash_balance = Decimal("10000.0000")
+    await db.flush()
+    return portfolio
 
 
 async def get_user_with_portfolio(

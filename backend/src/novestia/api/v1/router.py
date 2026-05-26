@@ -3,6 +3,7 @@
 from fastapi import APIRouter
 
 from novestia.api.v1.ai import router as ai_router
+from novestia.api.v1.journal import router as journal_router
 from novestia.api.v1.portfolio import router as portfolio_router
 from novestia.api.v1.risk import router as risk_router
 from novestia.api.v1.stocks import router as stocks_router
@@ -18,5 +19,6 @@ router.include_router(portfolio_router)
 router.include_router(watchlist_router)
 router.include_router(trades_router)
 router.include_router(risk_router)
+router.include_router(journal_router)
 router.include_router(ai_router)
 router.include_router(ws_router)
