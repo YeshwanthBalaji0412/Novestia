@@ -12,6 +12,7 @@ interface KpiCardProps {
   accent?: Accent;
   loading?: boolean;
   index?: number;
+  className?: string;
 }
 
 export function KpiCard({
@@ -21,6 +22,7 @@ export function KpiCard({
   accent,
   loading,
   index = 0,
+  className,
 }: KpiCardProps) {
   if (loading) return <KpiCardSkeleton />;
 
@@ -29,6 +31,7 @@ export function KpiCard({
       className={cn(
         "glass-card hud-corners p-4",
         accent && glowClass[accent],
+        className
       )}
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
@@ -37,7 +40,7 @@ export function KpiCard({
       <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
         {label}
       </p>
-      <p className="mt-1.5 font-numbers text-2xl font-bold leading-none">
+      <p className="mt-1.5 font-numbers text-2xl font-bold leading-none truncate" title={value}>
         {value}
       </p>
       {delta && accent && (

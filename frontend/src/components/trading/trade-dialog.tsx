@@ -34,9 +34,9 @@ export function TradeDialog({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<TradeResult | null>(null);
 
-  const estimatedTotal = quantity
-    ? (parseFloat(quantity) * parseFloat(currentPrice)).toFixed(2)
-    : "0.00";
+  const sharesNum = parseFloat(quantity) || 0;
+  const priceNum = parseFloat(currentPrice) || 0;
+  const estimatedTotal = sharesNum * priceNum;
 
   function validateQuantity(): string | null {
     if (!quantity) return "Enter a quantity";
@@ -211,7 +211,10 @@ export function TradeDialog({
                     </button>
                   )}
                 </div>
-                <p className="font-numbers text-xs text-muted-foreground">
+                <p className={cn(
+                  "font-numbers text-xs",
+                  estimatedTotal > 0 ? "text-foreground/70" : "text-muted-foreground",
+                )}>
                   ≈ {formatCurrency(estimatedTotal)}
                 </p>
               </div>
@@ -259,7 +262,7 @@ export function TradeDialog({
                 {!preview ? (
                   <button
                     onClick={handlePreview}
-                    disabled={isLoading || !quantity || parseFloat(quantity) <= 0}
+                    disabled={isLoading || sharesNum <= 0}
                     className="glass-card inline-flex h-10 w-full items-center justify-center text-sm font-semibold transition-all hover:border-primary/30 disabled:opacity-40"
                   >
                     {isLoading ? "Loading..." : "Preview Trade"}
@@ -275,9 +278,17 @@ export function TradeDialog({
                         : "bg-neon-red/15 text-loss glow-red hover:bg-neon-red/25",
                     )}
                   >
-                    {isLoading
-                      ? "Executing..."
-                      : `Confirm ${tradeType} · ${formatCurrency(preview.estimated_total)}`}
+                    {isLoading ? (
+                      <span className="flex items-center gap-2">
+                        <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Executing...
+                      </span>
+                    ) : (
+                      `Confirm ${tradeType} · ${formatCurrency(estimatedTotal)}`
+                    )}
                   </button>
                 )}
               </div>

@@ -129,7 +129,7 @@ export default function AppLayout({
             >
               {item.label}
               {isActive(item.href) && (
-                <span className="h-0.5 w-4 rounded-full bg-primary" />
+                <span className="h-0.5 w-4 rounded-full bg-primary shadow-glow-blue" />
               )}
             </Link>
           ))}

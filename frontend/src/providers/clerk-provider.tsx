@@ -12,13 +12,14 @@ export function ClerkProvider({ children }: { children: React.ReactNode }) {
           colorPrimary: "#5B8DEF",
           colorBackground: "#0F1117",
           colorInputBackground: "#1A1D27",
-          colorInputText: "#E8E8ED",
-          colorText: "#E8E8ED",
-          colorTextSecondary: "#6B7084",
+          colorInputText: "#f5f5f7",
+          colorText: "#f5f5f7",
+          colorTextSecondary: "#c2c2cc",
+          colorTextOnPrimaryBackground: "#ffffff",
           colorDanger: "#E5534B",
           colorSuccess: "#3FB950",
           colorWarning: "#D29922",
-          colorNeutral: "#E8E8ED",
+          colorNeutral: "#c2c2cc",
           borderRadius: "0.75rem",
           fontSize: "14px",
         },
@@ -33,15 +34,15 @@ export function ClerkProvider({ children }: { children: React.ReactNode }) {
             maxWidth: "420px",
           },
           headerTitle: {
-            color: "#E8E8ED",
+            color: "#f5f5f7",
             fontWeight: "700",
             fontSize: "20px",
           },
           headerSubtitle: {
-            color: "#6B7084",
+            color: "#c2c2cc",
           },
           formFieldLabel: {
-            color: "#9CA0B0",
+            color: "#c2c2cc",
             fontSize: "12px",
             fontWeight: "500",
             textTransform: "uppercase" as const,
@@ -50,7 +51,7 @@ export function ClerkProvider({ children }: { children: React.ReactNode }) {
           formFieldInput: {
             backgroundColor: "#1A1D27",
             border: "1px solid rgba(255,255,255,0.08)",
-            color: "#E8E8ED",
+            color: "#f5f5f7",
             fontSize: "14px",
           },
           formFieldInput__focused: {
@@ -67,13 +68,22 @@ export function ClerkProvider({ children }: { children: React.ReactNode }) {
           formButtonPrimary__hover: {
             backgroundColor: "#6E9CF2",
           },
+          footerActionText: {
+            color: "#c2c2cc",
+          },
           footerActionLink: {
             color: "#5B8DEF",
+            fontWeight: "500",
           },
+          footer: {
+            "& *": {
+              color: "#8e8e9a !important",
+            },
+          } as Record<string, unknown>,
           socialButtonsBlockButton: {
             backgroundColor: "transparent",
             border: "1px solid rgba(255,255,255,0.08)",
-            color: "#E8E8ED",
+            color: "#f5f5f7",
           },
           socialButtonsBlockButton__hover: {
             backgroundColor: "rgba(255,255,255,0.04)",
@@ -83,14 +93,14 @@ export function ClerkProvider({ children }: { children: React.ReactNode }) {
             backgroundColor: "rgba(255,255,255,0.08)",
           },
           dividerText: {
-            color: "#6B7084",
+            color: "#8e8e9a",
           },
           identityPreview: {
             backgroundColor: "#1A1D27",
             border: "1px solid rgba(255,255,255,0.08)",
           },
           identityPreviewText: {
-            color: "#E8E8ED",
+            color: "#f5f5f7",
           },
           identityPreviewEditButton: {
             color: "#5B8DEF",
@@ -101,25 +111,37 @@ export function ClerkProvider({ children }: { children: React.ReactNode }) {
           otpCodeFieldInput: {
             backgroundColor: "#1A1D27",
             border: "1px solid rgba(255,255,255,0.08)",
-            color: "#E8E8ED",
+            color: "#f5f5f7",
           },
           alert: {
             backgroundColor: "#1A1D27",
             border: "1px solid rgba(255,255,255,0.08)",
-            color: "#E8E8ED",
+            color: "#f5f5f7",
           },
           alertText: {
-            color: "#E8E8ED",
+            color: "#f5f5f7",
           },
           userButtonPopoverCard: {
             backgroundColor: "#0F1117",
             border: "1px solid rgba(255,255,255,0.08)",
           },
           userButtonPopoverActionButton: {
-            color: "#E8E8ED",
+            color: "#f5f5f7",
+          },
+          userButtonPopoverActionButtonText: {
+            color: "#f5f5f7",
+          },
+          userButtonPopoverActionButtonIcon: {
+            color: "#c2c2cc",
           },
           userButtonPopoverActionButton__hover: {
             backgroundColor: "rgba(255,255,255,0.04)",
+          },
+          userPreviewMainIdentifier: {
+            color: "#f5f5f7",
+          },
+          userPreviewSecondaryIdentifier: {
+            color: "#c2c2cc",
           },
           userButtonPopoverFooter: {
             display: "none",

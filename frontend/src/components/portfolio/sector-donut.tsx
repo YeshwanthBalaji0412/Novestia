@@ -75,6 +75,7 @@ export function SectorDonut({ holdings, cashPercent }: Props) {
               <Tooltip
                 contentStyle={chartTooltip.contentStyle as React.CSSProperties}
                 formatter={(value) => [formatPercent(Number(value), { withSign: false }), ""]}
+                position={{ y: 0 }}
               />
             </PieChart>
           </ResponsiveContainer>

@@ -42,6 +42,7 @@ export function PortfolioSummaryCard({ portfolio, loading }: Props) {
         value={formatCurrency(portfolio.cash_balance)}
         loading={loading}
         index={1}
+        className="opacity-90 bg-muted/20 border-border/40"
       />
       <KpiCard
         label="Total Return"
