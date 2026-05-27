@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { formatCurrency, formatPercent } from "@/lib/format";
 import { useApi } from "@/hooks/use-api";
@@ -68,19 +69,28 @@ export default function StockDetailPage() {
   const change = quote ? parseFloat(quote.change) : 0;
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-6">
+    <div className="flex flex-1 flex-col gap-6 p-4 sm:p-6">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{ticker.toUpperCase()}</h1>
-          <p className="text-muted-foreground">
+          <div className="flex items-center gap-3">
+            <h1 className="font-heading text-2xl font-bold sm:text-3xl">
+              {ticker.toUpperCase()}
+            </h1>
+            {snapshot?.instrument_type && (
+              <span className="rounded-full border border-border/50 bg-muted/30 px-2 py-0.5 text-[9px] uppercase tracking-wider text-muted-foreground">
+                {snapshot.instrument_type}
+              </span>
+            )}
+          </div>
+          <p className="text-sm text-muted-foreground">
             {snapshot?.company_name ?? "Loading..."}
             {snapshot?.exchange && ` · ${snapshot.exchange}`}
           </p>
         </div>
         <button
           onClick={() => setShowTrade(true)}
-          className="inline-flex h-10 items-center rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          className="inline-flex h-10 items-center rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground transition-all hover:brightness-110 hover:shadow-[0_0_20px_oklch(0.7_0.18_240_/_0.3)]"
         >
           Trade
         </button>
@@ -88,40 +98,85 @@ export default function StockDetailPage() {
 
       {/* Price */}
       {quote && (
-        <div>
-          <p className="text-3xl font-bold tabular-nums">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <p className="font-numbers text-4xl font-bold leading-none sm:text-5xl">
             {formatCurrency(quote.price)}
           </p>
           <p
             className={cn(
-              "text-sm font-medium tabular-nums",
-              change > 0 && "text-green-600",
-              change < 0 && "text-red-600",
+              "mt-2 font-numbers text-sm font-semibold",
+              change > 0 && "text-gain",
+              change < 0 && "text-loss",
             )}
           >
             {change >= 0 ? "+" : ""}
             {formatCurrency(quote.change)} ({formatPercent(quote.change_pct)})
           </p>
-          {!quote.market_open && (
-            <p className="text-xs text-yellow-600">Market closed</p>
-          )}
-          {quote.stale && (
-            <p className="text-xs text-yellow-600">Live data delayed</p>
-          )}
-        </div>
+          <div className="mt-1 flex gap-2">
+            {!quote.market_open && (
+              <span className="text-[10px] uppercase tracking-wider text-warning">
+                Market Closed
+              </span>
+            )}
+            {quote.stale && (
+              <span className="text-[10px] uppercase tracking-wider text-warning">
+                Delayed
+              </span>
+            )}
+          </div>
+        </motion.div>
       )}
 
       {/* Metrics grid */}
       {snapshot?.snapshot && (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Metric label="Market Cap" value={snapshot.snapshot.market_cap ? `$${(snapshot.snapshot.market_cap / 1e9).toFixed(1)}B` : "—"} />
-          <Metric label="P/E Ratio" value={snapshot.snapshot.pe_ratio ?? "—"} />
-          <Metric label="EPS" value={snapshot.snapshot.eps ? `$${snapshot.snapshot.eps}` : "—"} />
-          <Metric label="Beta" value={snapshot.snapshot.beta ?? "—"} />
-          <Metric label="Dividend Yield" value={snapshot.snapshot.dividend_yield ? `${(parseFloat(snapshot.snapshot.dividend_yield) * 100).toFixed(2)}%` : "—"} />
-          <Metric label="52w High" value={snapshot.snapshot.week_52_high ? formatCurrency(snapshot.snapshot.week_52_high) : "—"} />
-          <Metric label="52w Low" value={snapshot.snapshot.week_52_low ? formatCurrency(snapshot.snapshot.week_52_low) : "—"} />
-          <Metric label="Sector" value={snapshot.sector ?? "—"} />
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          <MetricCard
+            label="Market Cap"
+            value={
+              snapshot.snapshot.market_cap
+                ? `$${(snapshot.snapshot.market_cap / 1e9).toFixed(1)}B`
+                : "—"
+            }
+            i={0}
+          />
+          <MetricCard label="P/E Ratio" value={snapshot.snapshot.pe_ratio ?? "—"} i={1} />
+          <MetricCard
+            label="EPS"
+            value={snapshot.snapshot.eps ? `$${snapshot.snapshot.eps}` : "—"}
+            i={2}
+          />
+          <MetricCard label="Beta" value={snapshot.snapshot.beta ?? "—"} i={3} />
+          <MetricCard
+            label="Div. Yield"
+            value={
+              snapshot.snapshot.dividend_yield
+                ? `${(parseFloat(snapshot.snapshot.dividend_yield) * 100).toFixed(2)}%`
+                : "—"
+            }
+            i={4}
+          />
+          <MetricCard
+            label="52w High"
+            value={
+              snapshot.snapshot.week_52_high
+                ? formatCurrency(snapshot.snapshot.week_52_high)
+                : "—"
+            }
+            i={5}
+          />
+          <MetricCard
+            label="52w Low"
+            value={
+              snapshot.snapshot.week_52_low
+                ? formatCurrency(snapshot.snapshot.week_52_low)
+                : "—"
+            }
+            i={6}
+          />
+          <MetricCard label="Sector" value={snapshot.sector ?? "—"} i={7} />
         </div>
       )}
 
@@ -141,11 +196,18 @@ export default function StockDetailPage() {
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function MetricCard({ label, value, i }: { label: string; value: string; i: number }) {
   return (
-    <div className="rounded-lg border bg-card p-3">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 font-medium tabular-nums">{value}</p>
-    </div>
+    <motion.div
+      className="glass-card hud-corners p-3"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: i * 0.05 }}
+    >
+      <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+        {label}
+      </p>
+      <p className="mt-1 font-numbers text-sm font-medium">{value}</p>
+    </motion.div>
   );
 }

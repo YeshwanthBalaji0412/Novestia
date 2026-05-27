@@ -16,9 +16,11 @@
   "dependencies": {
     "@base-ui/react": "^1.5.0",
     "@clerk/nextjs": "^7.4.1",
+    "@clerk/themes": "^2.4.57",
     "@tanstack/react-query": "^5.100.14",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "framer-motion": "^12.40.0",
     "lightweight-charts": "^5.2.0",
     "lucide-react": "^1.16.0",
     "next": "16.2.6",

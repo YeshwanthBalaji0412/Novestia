@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/format";
@@ -11,6 +12,7 @@ interface Props {
   ticker: string;
   currentPrice: string;
   cashBalance: string;
+  heldQuantity?: string;
   onClose: () => void;
 }
 
@@ -18,6 +20,7 @@ export function TradeDialog({
   ticker,
   currentPrice,
   cashBalance,
+  heldQuantity,
   onClose,
 }: Props) {
   const api = useApi();
@@ -35,8 +38,17 @@ export function TradeDialog({
     ? (parseFloat(quantity) * parseFloat(currentPrice)).toFixed(2)
     : "0.00";
 
+  function validateQuantity(): string | null {
+    if (!quantity) return "Enter a quantity";
+    const num = parseFloat(quantity);
+    if (isNaN(num) || num <= 0) return "Quantity must be greater than zero";
+    if (!/^\d+(\.\d{1,8})?$/.test(quantity)) return "Max 8 decimal places";
+    return null;
+  }
+
   async function handlePreview() {
-    if (!quantity || parseFloat(quantity) <= 0) return;
+    const err = validateQuantity();
+    if (err) { setError(err); return; }
     setIsLoading(true);
     setError(null);
     try {
@@ -52,7 +64,7 @@ export function TradeDialog({
   }
 
   async function handleExecute() {
-    if (!quantity || !journalNote.trim()) return;
+    if (!quantity || !journalNote.trim() || !preview) return;
     setIsLoading(true);
     setError(null);
     try {
@@ -65,6 +77,7 @@ export function TradeDialog({
       setSuccess(res.data);
       void queryClient.invalidateQueries({ queryKey: ["portfolio"] });
       void queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      void queryClient.invalidateQueries({ queryKey: ["risk"] });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Trade failed");
     } finally {
@@ -72,171 +85,206 @@ export function TradeDialog({
     }
   }
 
-  if (success) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-        <div className="w-full max-w-md rounded-lg border bg-background p-6">
-          <h2 className="text-lg font-semibold text-green-600">
-            Trade Executed
-          </h2>
-          <div className="mt-4 space-y-2 text-sm">
-            <p>
-              {success.transaction.type} {parseFloat(success.transaction.quantity)}{" "}
-              {success.transaction.ticker} @{" "}
-              {formatCurrency(success.transaction.execution_price)}
-            </p>
-            <p>Total: {formatCurrency(success.transaction.total_amount)}</p>
-            {success.transaction.realized_pnl && (
-              <p>Realized P/L: {formatCurrency(success.transaction.realized_pnl)}</p>
-            )}
-            {success.transaction.executed_after_hours && (
-              <p className="text-yellow-600 text-xs">After-hours execution</p>
-            )}
-            <p className="text-muted-foreground">
-              Cash remaining: {formatCurrency(success.portfolio_after.cash_balance)}
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="mt-4 inline-flex h-9 w-full items-center justify-center rounded-md bg-primary text-sm font-medium text-primary-foreground hover:bg-primary/90"
-          >
-            Done
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="w-full max-w-md rounded-lg border bg-background p-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Trade {ticker}</h2>
-          <button
-            onClick={onClose}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            ✕
-          </button>
-        </div>
-
-        <p className="mt-1 text-sm text-muted-foreground">
-          Current price: {formatCurrency(currentPrice)} · Cash:{" "}
-          {formatCurrency(cashBalance)}
-        </p>
-
-        {/* BUY/SELL toggle */}
-        <div className="mt-4 flex gap-2">
-          {(["BUY", "SELL"] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => {
-                setTradeType(t);
-                setPreview(null);
-              }}
-              className={cn(
-                "flex-1 rounded-md py-2 text-sm font-medium transition-colors",
-                tradeType === t
-                  ? t === "BUY"
-                    ? "bg-green-600 text-white"
-                    : "bg-red-600 text-white"
-                  : "border bg-background hover:bg-accent",
-              )}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-
-        {/* Quantity input */}
-        <div className="mt-4 space-y-2">
-          <label className="text-sm font-medium">Shares</label>
-          <input
-            type="number"
-            step="any"
-            min="0"
-            value={quantity}
-            onChange={(e) => {
-              setQuantity(e.target.value);
-              setPreview(null);
-            }}
-            placeholder="0.00"
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm tabular-nums ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          />
-          <p className="text-xs text-muted-foreground">
-            Estimated total: {formatCurrency(estimatedTotal)}
-          </p>
-        </div>
-
-        {/* Journal note */}
-        <div className="mt-4 space-y-2">
-          <label className="text-sm font-medium">
-            Why are you making this trade?{" "}
-            <span className="text-muted-foreground">
-              ({journalNote.length}/500)
-            </span>
-          </label>
-          <textarea
-            value={journalNote}
-            onChange={(e) => setJournalNote(e.target.value)}
-            maxLength={500}
-            rows={2}
-            placeholder="Every trade needs a reason..."
-            className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          />
-        </div>
-
-        {/* Warnings from preview */}
-        {preview?.warnings && preview.warnings.length > 0 && (
-          <div className="mt-4 space-y-1">
-            {preview.warnings.map((w, i) => (
-              <p
-                key={i}
-                className={cn(
-                  "rounded-md px-3 py-2 text-xs",
-                  w.code === "AFTER_HOURS"
-                    ? "bg-yellow-50 text-yellow-800"
-                    : "bg-red-50 text-red-800",
+    <AnimatePresence>
+      <motion.div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+      >
+        <motion.div
+          className="glass-card-solid w-full max-w-md p-6"
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          transition={{ duration: 0.2 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {success ? (
+            /* ── Success state ── */
+            <div>
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neon-green/10">
+                  <span className="text-gain text-lg">✓</span>
+                </div>
+                <h2 className="font-heading text-lg font-semibold">
+                  Trade Executed
+                </h2>
+              </div>
+              <div className="mt-4 space-y-2 text-sm">
+                <div className="glass-card p-3">
+                  <span className={cn("font-semibold", success.transaction.type === "BUY" ? "text-gain" : "text-loss")}>
+                    {success.transaction.type}
+                  </span>{" "}
+                  <span className="font-numbers">{parseFloat(success.transaction.quantity)}</span>{" "}
+                  {success.transaction.ticker} @{" "}
+                  <span className="font-numbers">{formatCurrency(success.transaction.execution_price)}</span>
+                  <div className="mt-1 text-muted-foreground">
+                    Total: <span className="font-numbers">{formatCurrency(success.transaction.total_amount)}</span>
+                  </div>
+                </div>
+                {success.transaction.realized_pnl && (
+                  <p className="font-numbers text-sm">
+                    Realized P/L:{" "}
+                    <span className={parseFloat(success.transaction.realized_pnl) >= 0 ? "text-gain" : "text-loss"}>
+                      {formatCurrency(success.transaction.realized_pnl)}
+                    </span>
+                  </p>
                 )}
+                {success.risk_score_after != null && (
+                  <p className="text-xs text-muted-foreground">
+                    Risk score: <span className="font-numbers text-foreground">{success.risk_score_after}/100</span>
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={onClose}
+                className="mt-5 inline-flex h-10 w-full items-center justify-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground transition-all hover:brightness-110"
               >
-                {w.message}
-              </p>
-            ))}
-          </div>
-        )}
-
-        {error && (
-          <p className="mt-4 text-sm text-destructive">{error}</p>
-        )}
-
-        {/* Action buttons */}
-        <div className="mt-4 flex gap-2">
-          {!preview ? (
-            <button
-              onClick={handlePreview}
-              disabled={isLoading || !quantity || parseFloat(quantity) <= 0}
-              className="flex-1 rounded-md bg-accent py-2 text-sm font-medium hover:bg-accent/80 disabled:opacity-50"
-            >
-              {isLoading ? "Loading..." : "Preview"}
-            </button>
+                Done
+              </button>
+            </div>
           ) : (
-            <button
-              onClick={handleExecute}
-              disabled={isLoading || !journalNote.trim()}
-              className={cn(
-                "flex-1 rounded-md py-2 text-sm font-medium text-white disabled:opacity-50",
-                tradeType === "BUY"
-                  ? "bg-green-600 hover:bg-green-700"
-                  : "bg-red-600 hover:bg-red-700",
+            /* ── Trade form ── */
+            <div>
+              <div className="flex items-center justify-between">
+                <h2 className="font-heading text-lg font-semibold">
+                  Trade {ticker}
+                </h2>
+                <button
+                  onClick={onClose}
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="mt-1 flex gap-3 text-xs text-muted-foreground">
+                <span>Price: <span className="font-numbers text-foreground">{formatCurrency(currentPrice)}</span></span>
+                <span>Cash: <span className="font-numbers text-foreground">{formatCurrency(cashBalance)}</span></span>
+              </div>
+
+              {/* BUY/SELL toggle */}
+              <div className="mt-4 flex gap-1.5">
+                {(["BUY", "SELL"] as const).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => { setTradeType(t); setPreview(null); }}
+                    className={cn(
+                      "flex-1 rounded-lg py-2.5 text-xs font-semibold uppercase tracking-wider transition-all",
+                      tradeType === t
+                        ? t === "BUY"
+                          ? "bg-neon-green/15 text-gain glow-green"
+                          : "bg-neon-red/15 text-loss glow-red"
+                        : "glass-card text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+
+              {/* Quantity */}
+              <div className="mt-4 space-y-1.5">
+                <label className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+                  Shares
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="any"
+                    min="0"
+                    value={quantity}
+                    onChange={(e) => { setQuantity(e.target.value); setPreview(null); setError(null); }}
+                    placeholder="0.00"
+                    className="flex h-10 w-full rounded-lg border border-input bg-background/50 px-3 py-2 pr-14 font-numbers text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                  />
+                  {tradeType === "SELL" && heldQuantity && (
+                    <button
+                      type="button"
+                      onClick={() => { setQuantity(heldQuantity); setPreview(null); }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md bg-accent/50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary hover:bg-accent"
+                    >
+                      Max
+                    </button>
+                  )}
+                </div>
+                <p className="font-numbers text-xs text-muted-foreground">
+                  ≈ {formatCurrency(estimatedTotal)}
+                </p>
+              </div>
+
+              {/* Journal note */}
+              <div className="mt-4 space-y-1.5">
+                <label className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+                  Trade Thesis · <span className="font-numbers">{journalNote.length}/500</span>
+                </label>
+                <textarea
+                  value={journalNote}
+                  onChange={(e) => setJournalNote(e.target.value)}
+                  maxLength={500}
+                  rows={2}
+                  placeholder="Every trade needs a reason..."
+                  className="flex w-full rounded-lg border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                />
+              </div>
+
+              {/* Warnings */}
+              {preview?.warnings && preview.warnings.length > 0 && (
+                <div className="mt-3 space-y-1">
+                  {preview.warnings.map((w, i) => (
+                    <p
+                      key={i}
+                      className={cn(
+                        "rounded-lg px-3 py-2 text-xs",
+                        w.code === "AFTER_HOURS"
+                          ? "bg-neon-amber/10 text-warning"
+                          : "bg-neon-red/10 text-loss",
+                      )}
+                    >
+                      {w.message}
+                    </p>
+                  ))}
+                </div>
               )}
-            >
-              {isLoading
-                ? "Executing..."
-                : `Confirm ${tradeType} ${formatCurrency(preview.estimated_total)}`}
-            </button>
+
+              {error && (
+                <p className="mt-3 text-sm text-loss">{error}</p>
+              )}
+
+              {/* Actions */}
+              <div className="mt-5">
+                {!preview ? (
+                  <button
+                    onClick={handlePreview}
+                    disabled={isLoading || !quantity || parseFloat(quantity) <= 0}
+                    className="glass-card inline-flex h-10 w-full items-center justify-center text-sm font-semibold transition-all hover:border-primary/30 disabled:opacity-40"
+                  >
+                    {isLoading ? "Loading..." : "Preview Trade"}
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleExecute}
+                    disabled={isLoading || !journalNote.trim()}
+                    className={cn(
+                      "inline-flex h-10 w-full items-center justify-center rounded-lg text-sm font-semibold transition-all disabled:opacity-40",
+                      tradeType === "BUY"
+                        ? "bg-neon-green/15 text-gain glow-green hover:bg-neon-green/25"
+                        : "bg-neon-red/15 text-loss glow-red hover:bg-neon-red/25",
+                    )}
+                  >
+                    {isLoading
+                      ? "Executing..."
+                      : `Confirm ${tradeType} · ${formatCurrency(preview.estimated_total)}`}
+                  </button>
+                )}
+              </div>
+            </div>
           )}
-        </div>
-      </div>
-    </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 }

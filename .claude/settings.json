@@ -47,12 +47,23 @@
       "Bash(curl -s http://localhost:8000/api/v1/watchlist)",
       "Bash(curl -s http://localhost:8000/api/v1/portfolio)",
       "Bash(curl -v -X POST http://localhost:8000/api/v1/watchlist/AAPL)",
-      "Bash(curl -v -X OPTIONS http://localhost:8000/api/v1/watchlist/AAPL -H 'Origin: http://localhost:3000' -H 'Access-Control-Request-Method: POST' -H 'Access-Control-Request-Headers: authorization,content-type')"
+      "Bash(curl -v -X OPTIONS http://localhost:8000/api/v1/watchlist/AAPL -H 'Origin: http://localhost:3000' -H 'Access-Control-Request-Method: POST' -H 'Access-Control-Request-Headers: authorization,content-type')",
+      "Bash(grep -E \"\\\\.py$\")",
+      "Bash(find /Users/yeshwanthbalaji/Documents/Novestia/backend/src/novestia -name \"*.py\" -type f -exec grep -l \"TODO\\\\|FIXME\\\\|XXX\\\\|HACK\\\\|BUG\\\\|NotImplemented\\\\|raise NotImplemented\" {} \\\\;)",
+      "Bash(ls /Users/yeshwanthbalaji/Documents/Novestia/frontend/tailwind.config.*)",
+      "Bash(curl -s -o /dev/null -w \"Frontend: %{http_code}\" http://localhost:3000)",
+      "Bash(grep -E \"\\(except:\\\\s*$|except Exception:\\)\")",
+      "Bash(grep -B2 \"^async def\" api/v1/*.py)",
+      "Bash(grep -B1 \"delete\" api/v1/*.py)",
+      "Bash(python3 -c \"from decimal import Decimal; Decimal\\('abc'\\)\")",
+      "Bash(python3 -c \"import sys; sys.path.insert\\(0, '/Users/yeshwanthbalaji/Documents/Novestia/backend/src'\\); from novestia.services import stock_service; print\\('OK'\\)\")",
+      "Bash(grep -r \"JSONResponse\\\\|return {\" /Users/yeshwanthbalaji/Documents/Novestia/backend/src/novestia/api/v1/*.py)"
     ],
     "additionalDirectories": [
       "/Users/yeshwanthbalaji/Documents/Novestia",
       "/Users/yeshwanthbalaji/Documents/Novestia/frontend/src/app/(auth)/sign-in",
-      "/Users/yeshwanthbalaji/Documents/Novestia/frontend/src/app/(app)/stocks"
+      "/Users/yeshwanthbalaji/Documents/Novestia/frontend/src/app/(app)/stocks",
+      "/private/tmp"
     ]
   }
 }

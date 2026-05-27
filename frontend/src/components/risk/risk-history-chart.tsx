@@ -1,13 +1,15 @@
 "use client";
 
 import {
-  Line,
-  LineChart,
+  Area,
+  AreaChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
+import { EmptyState } from "@/components/common/empty-state";
+import { chartAxis, chartColors, chartTooltip } from "@/lib/charts/theme";
 import type { RiskHistoryPoint } from "@/hooks/use-risk";
 
 interface Props {
@@ -17,8 +19,8 @@ interface Props {
 export function RiskHistoryChart({ points }: Props) {
   if (points.length < 2) {
     return (
-      <div className="flex h-48 items-center justify-center rounded-lg border bg-card text-sm text-muted-foreground">
-        Risk history will appear after a few trades.
+      <div className="h-48">
+        <EmptyState icon="📉" title="Risk history will appear after a few trades" />
       </div>
     );
   }
@@ -29,23 +31,27 @@ export function RiskHistoryChart({ points }: Props) {
   }));
 
   return (
-    <div className="h-48 rounded-lg border bg-card p-4">
+    <div className="glass-card h-48 p-4">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data}>
-          <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-          <YAxis
-            domain={[0, 100]}
-            tick={{ fontSize: 10 }}
-          />
-          <Tooltip />
-          <Line
+        <AreaChart data={data}>
+          <defs>
+            <linearGradient id="riskFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={chartColors.neutral} stopOpacity={0.2} />
+              <stop offset="100%" stopColor={chartColors.neutral} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <XAxis dataKey="date" tick={chartAxis} axisLine={false} tickLine={false} />
+          <YAxis domain={[0, 100]} tick={chartAxis} axisLine={false} tickLine={false} width={30} />
+          <Tooltip contentStyle={chartTooltip.contentStyle as React.CSSProperties} />
+          <Area
             type="monotone"
             dataKey="score"
-            stroke="#6366f1"
+            stroke={chartColors.neutral}
+            fill="url(#riskFill)"
             strokeWidth={2}
             dot={false}
           />
-        </LineChart>
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   );

@@ -4,6 +4,8 @@ import { useClerk } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/layout/page-header";
 import { useUserSync } from "@/hooks/use-user-sync";
 import { useApi } from "@/hooks/use-api";
 
@@ -14,34 +16,11 @@ export default function SettingsPage() {
   const api = useApi();
   const { data: user, refetch } = useUserSync();
 
-  const [displayName, setDisplayName] = useState(
-    user?.display_name ?? "",
-  );
+  const [displayName, setDisplayName] = useState(user?.display_name ?? "");
   const [isSaving, setIsSaving] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const [theme, setTheme] = useState<"light" | "dark" | "system">(() => {
-    if (typeof window === "undefined") return "system";
-    return (localStorage.getItem("theme") as "light" | "dark" | "system") ?? "system";
-  });
-
-  function applyTheme(newTheme: "light" | "dark" | "system") {
-    setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
-    const root = document.documentElement;
-    if (newTheme === "dark") {
-      root.classList.add("dark");
-    } else if (newTheme === "light") {
-      root.classList.remove("dark");
-    } else {
-      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-        root.classList.add("dark");
-      } else {
-        root.classList.remove("dark");
-      }
-    }
-  }
+  const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
   async function handleSaveName() {
     setIsSaving(true);
@@ -49,9 +28,9 @@ export default function SettingsPage() {
     try {
       await api.patch("/api/v1/users/me", { display_name: displayName });
       await refetch();
-      setMessage("Display name updated.");
+      setMessage({ text: "Display name updated.", type: "success" });
     } catch {
-      setMessage("Failed to update name.");
+      setMessage({ text: "Failed to update name.", type: "error" });
     } finally {
       setIsSaving(false);
     }
@@ -62,77 +41,60 @@ export default function SettingsPage() {
     setMessage(null);
     try {
       await api.post("/api/v1/users/reset-portfolio");
-      void queryClient.invalidateQueries();
-      setMessage("Portfolio reset to $10,000.");
+      void queryClient.invalidateQueries({ queryKey: ["portfolio"] });
+      void queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      void queryClient.invalidateQueries({ queryKey: ["risk"] });
+      void queryClient.invalidateQueries({ queryKey: ["watchlist"] });
+      setMessage({ text: "Portfolio reset to $10,000.", type: "success" });
       setShowResetConfirm(false);
     } catch {
-      setMessage("Failed to reset portfolio.");
+      setMessage({ text: "Failed to reset portfolio.", type: "error" });
     } finally {
       setIsResetting(false);
     }
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-6">
-      <h1 className="text-2xl font-bold">Settings</h1>
+    <div className="flex flex-1 flex-col gap-4 p-4 sm:gap-6 sm:p-6">
+      <PageHeader title="Settings" />
 
       {message && (
-        <div className="rounded-md border bg-card px-4 py-3 text-sm">
-          {message}
+        <div className={cn(
+          "glass-card px-4 py-3 text-sm",
+          message.type === "success" ? "glow-green text-gain" : "glow-red text-loss",
+        )}>
+          {message.text}
         </div>
       )}
 
-      {/* Display name */}
-      <div className="rounded-lg border bg-card p-4">
-        <h2 className="font-semibold">Display Name</h2>
+      <div className="glass-card p-4">
+        <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Display Name</p>
         <div className="mt-3 flex gap-2">
           <input
             type="text"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
-            className="flex h-9 flex-1 rounded-md border border-input bg-background px-3 py-1 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex h-10 flex-1 rounded-lg border border-input bg-background/50 px-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
           />
           <button
             onClick={handleSaveName}
             disabled={isSaving}
-            className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            className="inline-flex h-10 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition-all hover:brightness-110 disabled:opacity-40"
           >
             {isSaving ? "Saving..." : "Save"}
           </button>
         </div>
       </div>
 
-      {/* Theme */}
-      <div className="rounded-lg border bg-card p-4">
-        <h2 className="font-semibold">Theme</h2>
-        <div className="mt-3 flex gap-2">
-          {(["light", "dark", "system"] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => applyTheme(t)}
-              className={`rounded-md border px-4 py-2 text-sm font-medium capitalize transition-colors ${
-                theme === t
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-input bg-background hover:bg-accent"
-              }`}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Reset portfolio */}
-      <div className="rounded-lg border border-destructive/30 bg-card p-4">
-        <h2 className="font-semibold text-destructive">Danger Zone</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Reset your portfolio to $10,000. This will delete all trades,
-          holdings, journal entries, and risk history.
+      <div className="glass-card border-neon-red/20 p-4">
+        <p className="text-[10px] font-medium uppercase tracking-widest text-loss">Danger Zone</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Reset your portfolio to $10,000. This deletes all trades, holdings, journal entries, and risk history.
         </p>
         {!showResetConfirm ? (
           <button
             onClick={() => setShowResetConfirm(true)}
-            className="mt-3 inline-flex h-9 items-center rounded-md border border-destructive px-4 text-sm font-medium text-destructive hover:bg-destructive/10"
+            className="mt-3 inline-flex h-9 items-center rounded-lg border border-neon-red/30 px-4 text-sm font-medium text-loss transition-all hover:bg-neon-red/10"
           >
             Reset Portfolio
           </button>
@@ -141,13 +103,13 @@ export default function SettingsPage() {
             <button
               onClick={handleReset}
               disabled={isResetting}
-              className="inline-flex h-9 items-center rounded-md bg-destructive px-4 text-sm font-medium text-white hover:bg-destructive/90 disabled:opacity-50"
+              className="inline-flex h-9 items-center rounded-lg bg-neon-red/15 px-4 text-sm font-semibold text-loss glow-red transition-all hover:bg-neon-red/25 disabled:opacity-40"
             >
               {isResetting ? "Resetting..." : "Yes, reset everything"}
             </button>
             <button
               onClick={() => setShowResetConfirm(false)}
-              className="inline-flex h-9 items-center rounded-md border px-4 text-sm font-medium hover:bg-accent"
+              className="glass-card inline-flex h-9 items-center px-4 text-sm font-medium"
             >
               Cancel
             </button>
@@ -155,11 +117,10 @@ export default function SettingsPage() {
         )}
       </div>
 
-      {/* Sign out */}
-      <div className="rounded-lg border bg-card p-4">
+      <div className="glass-card p-4">
         <button
           onClick={() => signOut(() => router.push("/"))}
-          className="inline-flex h-9 items-center rounded-md border px-4 text-sm font-medium hover:bg-accent"
+          className="glass-card inline-flex h-9 items-center px-4 text-sm font-medium transition-all hover:border-primary/30"
         >
           Sign Out
         </button>

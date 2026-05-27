@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { formatCurrency, formatPercent } from "@/lib/format";
+import { EmptyState } from "@/components/common/empty-state";
 import { useRemoveFromWatchlist } from "@/hooks/use-watchlist";
 import type { WatchlistItem } from "@/types";
 
@@ -15,64 +16,62 @@ export function WatchlistTable({ items }: Props) {
 
   if (items.length === 0) {
     return (
-      <div className="rounded-lg border bg-card p-6 text-center text-muted-foreground">
-        Your watchlist is empty. Search for stocks to add.
-      </div>
+      <EmptyState
+        icon="👀"
+        title="Watchlist is empty"
+        message="Search for stocks to start watching."
+        action={
+          <Link href="/explore" className="glass-card inline-flex h-9 items-center px-4 text-xs font-semibold uppercase tracking-wider text-primary hover:border-primary/30">
+            Explore Stocks
+          </Link>
+        }
+      />
     );
   }
 
   return (
-    <div className="rounded-lg border bg-card">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b text-left text-muted-foreground">
-              <th className="p-3 font-medium">Ticker</th>
-              <th className="p-3 font-medium text-right">Price</th>
-              <th className="p-3 font-medium text-right">Change</th>
-              <th className="p-3 font-medium text-right"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item) => {
-              const chg = parseFloat(item.daily_change);
-              return (
-                <tr key={item.ticker} className="border-b last:border-0">
-                  <td className="p-3">
-                    <Link href={`/stocks/${item.ticker}`} className="hover:underline">
-                      <div className="font-medium">{item.ticker}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {item.company_name}
-                      </div>
-                    </Link>
-                  </td>
-                  <td className="p-3 text-right tabular-nums">
-                    {formatCurrency(item.current_price)}
-                  </td>
-                  <td
-                    className={cn(
-                      "p-3 text-right tabular-nums",
-                      chg > 0 && "text-green-600",
-                      chg < 0 && "text-red-600",
-                    )}
-                  >
-                    {formatPercent(item.daily_change_pct)}
-                  </td>
-                  <td className="p-3 text-right">
-                    <button
-                      onClick={() => remove(item.ticker)}
-                      disabled={isPending}
-                      className="text-xs text-muted-foreground hover:text-destructive"
-                    >
-                      Remove
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+    <div className="space-y-1.5">
+      {items.map((item) => {
+        const chg = parseFloat(item.daily_change);
+        return (
+          <Link
+            key={item.ticker}
+            href={`/stocks/${item.ticker}`}
+            className="glass-card flex items-center justify-between p-3 transition-all hover:border-primary/30"
+          >
+            <div>
+              <span className="font-semibold text-sm">{item.ticker}</span>
+              <span className="ml-2 text-[11px] text-muted-foreground">
+                {item.company_name}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="font-numbers text-sm">
+                {formatCurrency(item.current_price)}
+              </span>
+              <span
+                className={cn(
+                  "font-numbers text-xs font-medium",
+                  chg > 0 && "text-gain",
+                  chg < 0 && "text-loss",
+                )}
+              >
+                {formatPercent(item.daily_change_pct)}
+              </span>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  remove(item.ticker);
+                }}
+                disabled={isPending}
+                className="text-[10px] uppercase tracking-wide text-muted-foreground transition-colors hover:text-destructive"
+              >
+                ✕
+              </button>
+            </div>
+          </Link>
+        );
+      })}
     </div>
   );
 }
