@@ -4,7 +4,7 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from novestia.config import settings
+from novestia.core.db import _build_engine_args
 from novestia.models import Base
 
 config = context.config
@@ -17,6 +17,8 @@ target_metadata = Base.metadata
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode — generates SQL without a DB connection."""
+    from novestia.config import settings
+
     context.configure(
         url=settings.database_url,
         target_metadata=target_metadata,
@@ -37,7 +39,12 @@ def do_run_migrations(connection):  # type: ignore[no-untyped-def]
 
 async def run_async_migrations() -> None:
     """Run migrations in 'online' mode with an async engine."""
-    connectable = create_async_engine(settings.database_url, pool_pre_ping=True)
+    args = _build_engine_args()
+    connectable = create_async_engine(
+        args["url"],
+        pool_pre_ping=True,
+        connect_args=args["connect_args"],
+    )
 
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)
