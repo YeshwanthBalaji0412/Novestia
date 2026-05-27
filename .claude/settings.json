@@ -58,7 +58,8 @@
       "Bash(python3 -c \"from decimal import Decimal; Decimal\\('abc'\\)\")",
       "Bash(python3 -c \"import sys; sys.path.insert\\(0, '/Users/yeshwanthbalaji/Documents/Novestia/backend/src'\\); from novestia.services import stock_service; print\\('OK'\\)\")",
       "Bash(grep -r \"JSONResponse\\\\|return {\" /Users/yeshwanthbalaji/Documents/Novestia/backend/src/novestia/api/v1/*.py)",
-      "Bash(pnpm build:*)"
+      "Bash(pnpm build:*)",
+      "Bash(/Applications/Docker.app/Contents/Resources/bin/docker build:*)"
     ],
     "additionalDirectories": [
       "/Users/yeshwanthbalaji/Documents/Novestia",
